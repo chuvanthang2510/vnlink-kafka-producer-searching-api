@@ -1,0 +1,28 @@
+spring:
+  main:
+    allow-circular-references: true
+
+  elasticsearch:
+    rest:
+      uris: http://localhost:9200
+    username: newadmin
+    password: 123456789
+
+  kafka:
+    bootstrap-servers: kafka:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      compression-type: gzip
+      batch-size: 65536
+      linger-ms: 20
+      buffer-memory: 33554432
+
+server:
+  port: 8088
+
+logging:
+  level:
+    org.springframework.data.elasticsearch: DEBUG
+    org.elasticsearch: DEBUG
