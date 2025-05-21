@@ -9,12 +9,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
-public class DemoController {
+public class ProducerController {
 
     private final OrderProducer producer;
     private final Gson gson = new Gson();
 
-    public DemoController(OrderProducer producer) {
+    public ProducerController(OrderProducer producer) {
         this.producer = producer;
     }
 
