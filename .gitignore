@@ -1,0 +1,28 @@
+# Created by .ignore support plugin (hsz.mobi)
+# Maven build
+/target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Logs
+*.log
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VS Code
+.vscode/
+
+# Eclipse
+*.class
+.project
+.settings/
+.classpath
+
+# OS files
+.DS_Store
+Thumbs.db
+target/generated-sources/
