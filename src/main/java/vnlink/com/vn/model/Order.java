@@ -6,7 +6,7 @@ import org.springframework.data.elasticsearch.annotations.*;
 
 import java.util.Date;
 
-@Document(indexName = "orders_v2")
+@Document(indexName = "orders_v2*")
 @Setting(
     settingPath = "vietnamese-analyzer.json",
     shards = 5,
