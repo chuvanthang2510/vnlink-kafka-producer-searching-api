@@ -1,9 +1,7 @@
 package vnlink.com.vn.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
-import org.springframework.format.annotation.DateTimeFormat;
-
-import java.util.Date;
 
 @Data
 public class SearchRequestMultiField {
@@ -14,11 +12,11 @@ public class SearchRequestMultiField {
     private String customerName;
     private String customerEmail;
 
-    @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm:ss")
-    private Date fromCreatedDate;
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+    private String fromCreatedDate;
 
-    @DateTimeFormat(pattern = "dd/MM/yyyy HH:mm:ss")
-    private Date toCreatedDate;
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+    private String toCreatedDate;
 
     private int page = 0;
     private int pageSize = 20;

@@ -120,6 +120,8 @@ public class H {
 
         if (value instanceof Object[]) return ((Object[]) value).length > 0;
 
+        if (value instanceof Date) return ((Date) value).getTime() > 0;
+
         return true;
     }
 

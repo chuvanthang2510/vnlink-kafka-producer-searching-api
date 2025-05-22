@@ -126,15 +126,9 @@ public class OrderSearchService {
 
         // Tìm theo khoảng thời gian
         if (H.isTrue(request.getFromCreatedDate()) || H.isTrue(request.getToCreatedDate())) {
-            RangeQueryBuilder dateRangeQuery = QueryBuilders.rangeQuery("orderDate");
-            
-            if (H.isTrue(request.getFromCreatedDate())) {
-                dateRangeQuery.gte(request.getFromCreatedDate());
-            }
-            if (H.isTrue(request.getToCreatedDate())) {
-                dateRangeQuery.lte(request.getToCreatedDate());
-            }
-            
+            RangeQueryBuilder dateRangeQuery = QueryBuilders.rangeQuery("orderDate")
+                    .gte(request.getFromCreatedDate())
+                    .lte(request.getToCreatedDate());
             boolQuery.must(dateRangeQuery);
         }
 
