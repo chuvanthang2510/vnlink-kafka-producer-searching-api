@@ -1,21 +1,30 @@
 package vnlink.com.vn.controller;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.google.gson.Gson;
 import vnlink.com.vn.dto.OrderLog;
 import vnlink.com.vn.service.OrderProducer;
+import vnlink.com.vn.service.OrderSearchService;
 
 import java.util.List;
 
+@Slf4j
 @RestController
-@RequestMapping("/api/orders")
+@RequestMapping("/api/producer")
+@RequiredArgsConstructor
 public class ProducerController {
 
     private final OrderProducer producer;
     private final Gson gson = new Gson();
+    private final OrderSearchService orderSearchService;
 
-    public ProducerController(OrderProducer producer) {
-        this.producer = producer;
+    @PostMapping("/generate-data")
+    public ResponseEntity<String> generateData(@RequestParam(defaultValue = "1000000") int numberOfRecords) {
+        orderSearchService.generateFakeData(numberOfRecords);
+        return ResponseEntity.ok("Data generation completed");
     }
 
     @PostMapping

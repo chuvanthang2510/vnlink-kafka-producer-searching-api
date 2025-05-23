@@ -1,5 +1,7 @@
 package vnlink.com.vn.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -30,7 +32,6 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -42,6 +43,10 @@ public class OrderSearchService {
 
     private final ElasticsearchRestTemplate elasticsearchTemplate;
     private final RestHighLevelClient restHighLevelClient;
+    private final KafkaProducerService kafkaProducerService;
+
+    private static final ObjectMapper mapper = new ObjectMapper();
+
 
     public SearchResponse searchOrdersMultiField(SearchRequestMultiField request) {
         try {
@@ -148,16 +153,14 @@ public class OrderSearchService {
     }
 
     public void generateFakeData(int numberOfRecords) {
-        log.info("Starting to generate {} fake records", numberOfRecords);
+        log.info("Start generating {} records for Kafka", numberOfRecords);
 
-        // Danh sách các giá trị mẫu
         String[] firstNames = {"Nguyễn", "Trần", "Lê", "Phạm", "Hoàng", "Huỳnh", "Phan", "Vũ", "Võ", "Đặng"};
         String[] middleNames = {"Văn", "Thị", "Hoàng", "Đức", "Minh", "Hữu", "Công", "Đình", "Xuân", "Hồng"};
         String[] lastNames = {"An", "Bình", "Cường", "Dũng", "Em", "Phúc", "Giang", "Hùng", "Khang", "Linh"};
         String[] domains = {"gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "company.com"};
         String[] statuses = {"PENDING", "CONFIRMED", "CANCELLED", "COMPLETED", "PROCESSING"};
 
-        // Số lượng bản ghi mỗi lần bulk
         int batchSize = 10000;
         int totalBatches = (int) Math.ceil((double) numberOfRecords / batchSize);
 
@@ -166,11 +169,10 @@ public class OrderSearchService {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 
         for (int batch = 0; batch < totalBatches; batch++) {
-            BulkRequest bulkRequest = new BulkRequest();
             int currentBatchSize = Math.min(batchSize, numberOfRecords - (batch * batchSize));
+            List<String> messages = new ArrayList<>(currentBatchSize);
 
             for (int i = 0; i < currentBatchSize; i++) {
-                // Tạo dữ liệu ngẫu nhiên
                 String firstName = firstNames[random.nextInt(firstNames.length)];
                 String middleName = middleNames[random.nextInt(middleNames.length)];
                 String lastName = lastNames[random.nextInt(lastNames.length)];
@@ -187,7 +189,6 @@ public class OrderSearchService {
                         random.nextInt(1000000));
                 String phoneNumber = String.format("09%d", 10000000 + random.nextInt(90000000));
 
-                // Tạo ngày ngẫu nhiên trong 2 năm gần đây
                 Calendar cal = Calendar.getInstance();
                 cal.add(Calendar.YEAR, -2);
                 long startTime = cal.getTimeInMillis();
@@ -198,7 +199,6 @@ public class OrderSearchService {
                 double totalAmount = 100000 + random.nextDouble() * 9000000;
                 String status = statuses[random.nextInt(statuses.length)];
 
-                // Tạo JSON document
                 Map<String, Object> document = new HashMap<>();
                 document.put("id", UUID.randomUUID().toString());
                 document.put("code", code);
@@ -210,26 +210,21 @@ public class OrderSearchService {
                 document.put("totalAmount", totalAmount);
                 document.put("status", status);
 
-                // Thêm vào bulk request
-                IndexRequest indexRequest = new IndexRequest("orders_v2_0521205")
-                        .source(document, XContentType.JSON);
-                bulkRequest.add(indexRequest);
+                try {
+                    String json = mapper.writeValueAsString(document);
+                    messages.add(json);
+                } catch (JsonProcessingException e) {
+                    log.error("JSON error", e);
+                }
             }
 
-            try {
-                BulkResponse bulkResponse = restHighLevelClient.bulk(bulkRequest, RequestOptions.DEFAULT);
-                if (bulkResponse.hasFailures()) {
-                    log.error("Bulk request failed: {}", bulkResponse.buildFailureMessage());
-                } else {
-                    log.info("Successfully indexed batch {}/{} ({} records)",
-                            batch + 1, totalBatches, currentBatchSize);
-                }
-            } catch (Exception e) {
-                log.error("Error during bulk indexing: ", e);
-            }
+            // Gửi batch sang Kafka
+            messages.forEach(msg -> kafkaProducerService.sendToKafka("orders", msg));
+
+            log.info("Sent batch {}/{} ({} records) to Kafka", batch + 1, totalBatches, currentBatchSize);
         }
 
-        log.info("Finished generating {} fake records", numberOfRecords);
+        log.info("Finished sending {} records to Kafka", numberOfRecords);
     }
 
     private String removeVietnameseDiacritics(String str) {
