@@ -14,7 +14,7 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 @EnableElasticsearchRepositories(basePackages = "vnlink.com.vn.repository")
 public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
 
-    @Value("${elasticsearch.host:localhost}")
+    @Value("${elasticsearch.host:elasticsearch}")
     private String host;
 
     @Value("${elasticsearch.port:9200}")

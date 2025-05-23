@@ -4,9 +4,9 @@ spring:
 
   elasticsearch:
     rest:
-      uris: http://localhost:9200
-    username: newadmin
-    password: 123456789
+      uris: http://elasticsearch:9200
+#    username: newadmin
+#    password: 123456789
 
   kafka:
     bootstrap-servers: kafka:9092
