@@ -4,24 +4,21 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
-import org.elasticsearch.xcontent.XContentType;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
+import org.springframework.util.concurrent.ListenableFuture;
 import vnlink.com.vn.common.H;
 import vnlink.com.vn.dto.SearchRequestMultiField;
 import vnlink.com.vn.dto.SearchResponse;
@@ -30,6 +27,7 @@ import vnlink.com.vn.model.Order;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 @Slf4j
@@ -243,5 +241,118 @@ public class OrderSearchService {
         str = str.replaceAll("[ỲÝỴỶỸ]", "Y");
         str = str.replaceAll("[Đ]", "D");
         return str;
+    }
+
+
+    private static final int BATCH_SIZE = 10000;
+    private static final int THREAD_POOL_SIZE = 8; // Tùy chỉnh theo cấu hình máy
+
+    public void generateFakeDataMultiThread(int numberOfRecords) throws InterruptedException {
+        log.info("Start generating {} records for Kafka", numberOfRecords);
+
+        String[] firstNames = {"Nguyễn", "Trần", "Lê", "Phạm", "Hoàng", "Huỳnh", "Phan", "Vũ", "Võ", "Đặng"};
+        String[] middleNames = {"Văn", "Thị", "Hoàng", "Đức", "Minh", "Hữu", "Công", "Đình", "Xuân", "Hồng"};
+        String[] lastNames = {"An", "Bình", "Cường", "Dũng", "Em", "Phúc", "Giang", "Hùng", "Khang", "Linh"};
+        String[] domains = {"gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "company.com"};
+        String[] statuses = {"PENDING", "CONFIRMED", "CANCELLED", "COMPLETED", "PROCESSING"};
+
+        int totalBatches = (int) Math.ceil((double) numberOfRecords / BATCH_SIZE);
+
+        AtomicInteger globalCounter = new AtomicInteger(0);
+        Random random = new Random();
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+
+        ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
+
+        List<Future<?>> futures = new ArrayList<>();
+
+        for (int batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+            final int currentBatchIndex = batchIndex;
+
+            // Tạo task gửi batch
+            Future<?> future = executor.submit(() -> {
+                int currentBatchSize = Math.min(BATCH_SIZE, numberOfRecords - currentBatchIndex * BATCH_SIZE);
+                List<String> messages = new ArrayList<>(currentBatchSize);
+
+                for (int i = 0; i < currentBatchSize; i++) {
+                    String firstName = firstNames[random.nextInt(firstNames.length)];
+                    String middleName = middleNames[random.nextInt(middleNames.length)];
+                    String lastName = lastNames[random.nextInt(lastNames.length)];
+                    String customerName = String.format("%s %s %s", firstName, middleName, lastName);
+
+                    String username = (firstName + lastName).toLowerCase().replaceAll("\\s+", "");
+                    username = removeVietnameseDiacritics(username);
+                    String domain = domains[random.nextInt(domains.length)];
+                    String customerEmail = String.format("%s@%s", username, domain);
+
+                    String code = String.format("ORD%08d", globalCounter.incrementAndGet());
+                    String bookingCode = String.format("BK%d%06d",
+                            Calendar.getInstance().get(Calendar.YEAR),
+                            random.nextInt(1000000));
+                    String phoneNumber = String.format("09%d", 10000000 + random.nextInt(90000000));
+
+                    Calendar cal = Calendar.getInstance();
+                    cal.add(Calendar.YEAR, -2);
+                    long startTime = cal.getTimeInMillis();
+                    long endTime = System.currentTimeMillis();
+                    long randomTime = startTime + (long)(random.nextDouble() * (endTime - startTime));
+                    Date orderDate = new Date(randomTime);
+
+                    double totalAmount = 100000 + random.nextDouble() * 9000000;
+                    String status = statuses[random.nextInt(statuses.length)];
+
+                    Map<String, Object> document = new HashMap<>();
+                    document.put("id", UUID.randomUUID().toString());
+                    document.put("code", code);
+                    document.put("bookingCode", bookingCode);
+                    document.put("phoneNumber", phoneNumber);
+                    document.put("customerName", customerName);
+                    document.put("customerEmail", customerEmail);
+                    document.put("orderDate", sdf.format(orderDate));
+                    document.put("totalAmount", totalAmount);
+                    document.put("status", status);
+
+                    try {
+                        String json = mapper.writeValueAsString(document);
+                        messages.add(json);
+                    } catch (JsonProcessingException e) {
+                        log.error("JSON error", e);
+                    }
+                }
+
+                // Gửi batch lên Kafka, thu thập future
+                List<ListenableFuture<SendResult<String, String>>> sendFutures = new ArrayList<>();
+                for (String msg : messages) {
+                    sendFutures.add(kafkaProducerService.sendToKafkaMultiThead("orders", msg));
+                }
+
+                // Đợi gửi hết, timeout 10s cho mỗi message
+                for (ListenableFuture<SendResult<String, String>> sendFuture : sendFutures) {
+                    try {
+                        sendFuture.get(10, TimeUnit.SECONDS);
+                    } catch (Exception e) {
+                        log.error("Failed to send message in batch {}: {}", currentBatchIndex + 1, e.getMessage(), e);
+                        // Có thể thêm retry hoặc ghi nhận lỗi theo yêu cầu
+                    }
+                }
+
+                log.info("Batch {}/{} sent {} records", currentBatchIndex + 1, totalBatches, currentBatchSize);
+            });
+
+            futures.add(future);
+        }
+
+        // Đợi tất cả batch hoàn thành
+        for (Future<?> f : futures) {
+            try {
+                f.get();
+            } catch (ExecutionException e) {
+                log.error("Batch execution failed: {}", e.getMessage(), e);
+            }
+        }
+
+        executor.shutdown();
+
+        log.info("Finished sending {} records to Kafka", numberOfRecords);
     }
 } 

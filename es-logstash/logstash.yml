@@ -1,0 +1,3 @@
+pipeline.workers: 8
+pipeline.batch.size: 500
+pipeline.batch.delay: 20

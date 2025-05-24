@@ -1,0 +1,53 @@
+mk oracle : ALTER USER system IDENTIFIED BY 13121998
+
+sqlplus system/13121998@localhost:1521/ORCL
+
+
+-----------check port
+   netstat -ano | findstr :9200
+
+tasklist | findstr 14860
+
+--------ElasticSearch
+Tên đăng nhập: newadmin
+Mật khẩu:     123456789
+
+------------- mat khaur git hub
+Chuthang@56789
+------
+docker-compose up -d
+
+docker network create es-net
+
+
+docker build -t my-elasticsearch .
+
+docker network create my-network
+
+------------------------------elasticsearch Docker 
+D:\kafka-producer>docker run -d --name elasticsearch --network my-network -p 9200:9200 -e "discovery.type=single-node" my-elasticsearch
+
+-- build cau hinh RAM :
+docker run -d --name elasticsearch7 --network my-network -e "discovery.type=single-node" -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" -p 9200:9200 docker.elastic.co/elasticsearch/elasticsearch:7.17.0
+
+-------------------------App 
+docker build -t my-kafka-producer .
+D:\kafka-producer>docker run -d --name kafka-producer --network my-network -p 8088:8088 my-kafka-producer
+
+--------------------logstash 
+docker build -t my-logstash .
+docker run -d --name logstash --network my-network -v %cd%/pipeline:/usr/share/logstash/pipeline my-logstash
+
+
+-------------Lenh Docker
+check log : docker logs  my-kafka-producer --tail 100
+
+
+docker exec -it logstash ping kafka
+
+check message so luong tren topic:
+docker exec -it kafka /bin/bash
+kafka-run-class kafka.tools.GetOffsetShell --broker-list localhost:9092 --topic orders --time -1
+
+
+

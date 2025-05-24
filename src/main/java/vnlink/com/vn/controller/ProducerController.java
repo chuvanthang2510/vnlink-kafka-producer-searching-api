@@ -27,6 +27,12 @@ public class ProducerController {
         return ResponseEntity.ok("Data generation completed");
     }
 
+    @PostMapping("/generate-data-multi-thread")
+    public ResponseEntity<String> generateDataMultiThread(@RequestParam(defaultValue = "1000000") int numberOfRecords) throws InterruptedException {
+        orderSearchService.generateFakeDataMultiThread(numberOfRecords);
+        return ResponseEntity.ok("Data generation completed");
+    }
+
     @PostMapping
     public String sendOrder(@RequestBody String json) {
         producer.sendOrder(json);
