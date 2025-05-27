@@ -184,3 +184,14 @@ PUT/_index_template/orders_template
 ------------------
 PUT /orders_v2_2024_05
 PUT /orders_v2_2024_06_test
+---Xóa bản ghi full :
+POST /orders_1/_delete_by_query
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+
+------------
+logstash.bat -f D:\elasticsearch\logstash-8.7.1\config\logstash.conf
