@@ -1,0 +1,23 @@
+[
+  {
+    
+    "orderCode": "ORD001",
+    "serviceType": ["Giao hàng", "Nhanh"],
+    "serviceCode": ["GH01", "NH01"],
+    "serviceId": ["SID001"],
+    "serviceMobile": "0912345678",
+    "customerName": "Chu Chỉ Nhược",
+    "customerMobile": ["0987654321"],
+    "customerEmail": "chinhuoc@example.com",
+    "emailPrefix": "chinhuoc",
+    "customerId": "C001",
+    "agentId": "AG001",
+    "saleChannelId": "SC001",
+    "orderDate": "2025-05-27T14:00:00+07:00",
+    "orderStatus": "Đã giao",
+    "paymentStatus": "Đã thanh toán",
+    "customerCareId": "CS001",
+    "agentPaymentStatus": "Đã thanh toán",
+    "subService": ["Gói ngày", "Ưu tiên"]
+  }
+]
