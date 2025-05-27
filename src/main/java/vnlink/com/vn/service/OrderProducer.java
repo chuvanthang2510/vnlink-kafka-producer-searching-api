@@ -4,7 +4,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import com.google.gson.Gson;
 import java.util.List;
 import org.springframework.stereotype.Service;
-import vnlink.com.vn.dto.OrderLog;
 
 @Service
 public class OrderProducer {
@@ -23,14 +22,6 @@ public class OrderProducer {
     public void sendOrdersBatch(List<String> ordersJsonList) {
         for (String orderJson : ordersJsonList) {
             sendOrder(orderJson);
-        }
-    }
-
-    // (Optionally) bạn có thể nhận List<OrderLog> rồi convert thành json
-    public void sendOrdersBatchObjects(List<OrderLog> orders) {
-        for (OrderLog order : orders) {
-            String json = gson.toJson(order);
-            sendOrder(json);
         }
     }
 }

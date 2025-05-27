@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.google.gson.Gson;
-import vnlink.com.vn.dto.OrderLog;
 import vnlink.com.vn.service.OrderProducer;
 import vnlink.com.vn.service.OrderSearchService;
 
@@ -37,20 +36,5 @@ public class ProducerController {
     public String sendOrder(@RequestBody String json) {
         producer.sendOrder(json);
         return "OK";
-    }
-    
-    @PostMapping("/batch")
-    public String sendOrdersBatch(@RequestBody List<OrderLog> orders) {
-        for (OrderLog order : orders) {
-            producer.sendOrder(gson.toJson(order));  // giữ nguyên cách producer nhận String JSON
-        }
-        return "Batch sent";
-    }
-
-    // Hoặc nếu client gửi list object JSON (dùng Gson để convert)
-    @PostMapping("/batchObjects")
-    public String sendOrdersBatchObjects(@RequestBody List<OrderLog> orders) {
-        producer.sendOrdersBatchObjects(orders);
-        return "Batch sent " + orders.size() + " orders as objects";
     }
 }

@@ -14,8 +14,11 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 @EnableElasticsearchRepositories(basePackages = "vnlink.com.vn.repository")
 public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
 
-    @Value("${elasticsearch.host:elasticsearch}")
-    private String host;
+//    @Value("${elasticsearch.host:elasticsearch}")
+//    private String host; //cau hinh docker
+
+    @Value("${elasticsearch.host:localhost}")
+    private String host; //cau hinh local
 
     @Value("${elasticsearch.port:9200}")
     private int port;
@@ -25,6 +28,8 @@ public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
     public RestHighLevelClient elasticsearchClient() {
         ClientConfiguration clientConfiguration = ClientConfiguration.builder()
                 .connectedTo(host + ":" + port)
+                .withConnectTimeout(1000)
+                .withSocketTimeout(30000)
                 .build();
         return RestClients.create(clientConfiguration).rest();
     }
