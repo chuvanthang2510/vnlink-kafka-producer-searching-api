@@ -85,8 +85,17 @@ public class OrderDocumentService {
             );
         }
 
-        if (H.isTrue(request.getCustomerEmail()))
-            boolQuery.must(QueryBuilders.matchQuery("customerEmail", request.getCustomerEmail()));
+        if (H.isTrue(request.getCustomerEmail())) {
+            String input = request.getCustomerEmail().trim();
+
+            if (!input.contains("@")) {
+                // Tìm tiền tố emailPrefix khi user chỉ nhập phần trước @
+                boolQuery.must(QueryBuilders.prefixQuery("emailPrefix.raw", input));
+            } else {
+                // Tìm chính xác email đầy đủ với trường customerEmail.raw (keyword)
+                boolQuery.must(QueryBuilders.termQuery("customerEmail.raw", input));
+            }
+        }
 
         if (H.isTrue(request.getCustomerId()))
             boolQuery.must(QueryBuilders.matchQuery("customerId", request.getCustomerId()));

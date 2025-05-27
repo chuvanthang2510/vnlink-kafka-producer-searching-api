@@ -91,6 +91,14 @@ public class OrderDocument {
                     @InnerField(suffix = "raw", type = FieldType.Keyword)
             }
     )
+    private String emailPrefix;
+
+    @MultiField(
+            mainField = @Field(type = FieldType.Text, analyzer = "partial_match_analyzer"),
+            otherFields = {
+                    @InnerField(suffix = "raw", type = FieldType.Keyword)
+            }
+    )
     private String customerId;
 
     @MultiField(
@@ -151,4 +159,6 @@ public class OrderDocument {
             }
     )
     private List<String> subService;
+
+
 }
