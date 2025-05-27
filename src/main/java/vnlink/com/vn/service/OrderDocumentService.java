@@ -10,18 +10,16 @@ import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
-import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import vnlink.com.vn.common.H;
+import vnlink.com.vn.dto.OrderDocumentDTO;
 import vnlink.com.vn.dto.OrderSearchRequest;
 import vnlink.com.vn.dto.OrderSearchResponse;
 import vnlink.com.vn.model.OrderDocument;
-import vnlink.com.vn.repository.OrderDocumentRepository;
 
 import java.time.Duration;
 import java.util.List;
@@ -49,20 +47,19 @@ public class OrderDocumentService {
 
     public OrderSearchResponse searchOrders(OrderSearchRequest request) {
         try {
-            // 1. Validate và normalize request
             validateRequest(request);
-
-            // 2. Build query
             NativeSearchQuery searchQuery = buildSearchQuery(request);
-            // 3. Thực hiện search trên tất cả index matching pattern
+
             SearchHits<OrderDocument> searchHits = elasticsearchTemplate.search(
                     searchQuery,
                     OrderDocument.class
             );
 
-            // 5. Map kết quả
-            List<OrderDocument> orders = searchHits.getSearchHits().stream()
-                    .map(SearchHit::getContent)
+            List<OrderDocumentDTO> orders = searchHits.getSearchHits().stream()
+                    .map(hit -> {
+                        OrderDocument doc = hit.getContent();
+                        return new OrderDocumentDTO(doc.getOrderCode(), doc.getCustomerName());
+                    })
                     .collect(Collectors.toList());
 
             return new OrderSearchResponse(orders, searchHits.getTotalHits());
@@ -70,7 +67,6 @@ public class OrderDocumentService {
             log.error("Error searching orders", e);
             throw e;
         }
-
     }
 
     private NativeSearchQuery buildSearchQuery(OrderSearchRequest request) {
@@ -124,8 +120,12 @@ public class OrderDocumentService {
         if (H.isTrue(request.getServiceId()))
             boolQuery.must(QueryBuilders.termsQuery("serviceId.raw", request.getServiceId()));
 
-        if (H.isTrue(request.getCustomerMobile()))
-            boolQuery.must(QueryBuilders.termsQuery("customerMobile.raw", request.getCustomerMobile()));
+        if (H.isTrue(request.getCustomerMobile())) {
+            List<String> normalizedPhones = request.getCustomerMobile().stream()
+                    .map(this::normalizePhone)
+                    .collect(Collectors.toList());
+            boolQuery.must(QueryBuilders.termsQuery("customerMobile.raw", normalizedPhones));
+        }
 
         if (H.isTrue(request.getSubService()))
             boolQuery.must(QueryBuilders.termsQuery("subService.raw", request.getSubService()));
@@ -154,5 +154,17 @@ public class OrderDocumentService {
                 // Thêm track_total_hits
                 .withTrackTotalHits(true)
                 .build();
+    }
+
+    public  String normalizePhone(String input) {
+        if (input == null) return null;
+        input = input.trim().replaceAll("[^0-9]", "");
+        if (input.startsWith("84")) {
+            return "0" + input.substring(2);
+        }
+        if (input.startsWith("0")) {
+            return input;
+        }
+        return input;
     }
 }

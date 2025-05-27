@@ -8,7 +8,7 @@ import java.util.Date;
 import java.util.List;
 
 @Data
-@Document(indexName = "orders_test1_1")
+@Document(indexName = "orders*")
 @Setting(
         settingPath = "vietnamese-analyzer.json",
         shards = 5,

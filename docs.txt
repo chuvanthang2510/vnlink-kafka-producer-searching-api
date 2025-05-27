@@ -49,5 +49,138 @@ check message so luong tren topic:
 docker exec -it kafka /bin/bash
 kafka-run-class kafka.tools.GetOffsetShell --broker-list localhost:9092 --topic orders --time -1
 
+---------- tạo pattern index -------------
+PUT/_index_template/orders_template
+{
+  "index_patterns": ["orders*"],
+  "priority": 10,
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 1,
+      "refresh_interval": "1s",
+      "analysis": {
+        "analyzer": {
+          "vietnamese": {
+            "filter": [
+              "lowercase",
+              "asciifolding"
+            ],
+            "type": "custom",
+            "tokenizer": "standard"
+          }
+        }
+      }
+    },
+    "mappings": {
+      "properties": {
+        "orderCode": {
+          "type": "text",
+          "fields": {
+            "raw": { "type": "keyword" }
+          },
+          "analyzer": "vietnamese"
+        },
+        "serviceType": {
+          "type": "text",
+          "fields": {
+            "raw": { "type": "keyword" }
+          },
+          "analyzer": "vietnamese"
+        },
+        "serviceCode": {
+          "type": "text",
+          "fields": {
+            "raw": { "type": "keyword" }
+          },
+          "analyzer": "vietnamese"
+        },
+        "serviceId": {
+          "type": "text",
+          "fields": {
+            "raw": { "type": "keyword" }
+          },
+          "analyzer": "vietnamese"
+        },
+        "serviceMobile": {
+          "type": "text",
+          "fields": {
+            "raw": { "type": "keyword" }
+          },
+          "analyzer": "vietnamese"
+        },
+        "customerName": {
+          "type": "text",
+          "fields": {
+            "raw": { "type": "keyword" }
+          },
+          "analyzer": "vietnamese"
+        },
+        "customerMobile": {
+          "type": "text",
+          "fields": {
+            "raw": { "type": "keyword" }
+          },
+          "analyzer": "vietnamese"
+        },
+        "customerEmail": {
+          "type": "text",
+          "fields": {
+            "raw": { "type": "keyword" }
+          },
+          "analyzer": "vietnamese"
+        },
+        "customerId": {
+          "type": "text",
+          "fields": {
+            "raw": { "type": "keyword" }
+          },
+          "analyzer": "vietnamese"
+        },
+        "agentId": {
+          "type": "text",
+          "fields": {
+            "raw": { "type": "keyword" }
+          },
+          "analyzer": "vietnamese"
+        },
+        "saleChannelId": {
+          "type": "text",
+          "fields": {
+            "raw": { "type": "keyword" }
+          },
+          "analyzer": "vietnamese"
+        },
+        "orderDate": {
+          "type": "date",
+          "format": "dd/MM/yyyy HH:mm:ss"
+        },
+        "orderStatus": {
+          "type": "keyword"
+        },
+        "paymentStatus": {
+          "type": "keyword"
+        },
+        "customerCareId": {
+          "type": "keyword"
+        },
+        "agentPaymentStatus": {
+          "type": "keyword"
+        },
+        "subService": {
+          "type": "text",
+          "fields": {
+            "raw": { "type": "keyword" }
+          },
+          "analyzer": "vietnamese"
+        }
+      }
+    }
+  }
+}
 
 
+
+------------------
+PUT /orders_v2_2024_05
+PUT /orders_v2_2024_06_test
