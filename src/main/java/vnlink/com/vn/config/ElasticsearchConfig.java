@@ -14,13 +14,13 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 @EnableElasticsearchRepositories(basePackages = "vnlink.com.vn.repository")
 public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
 
-    @Value("${elasticsearch.host:elasticsearch}")
-    private String host; //cau hinh docker
-//
 //    @Value("${elasticsearch.host:localhost}")
 //    private String host; //cau hinh local
 
-    @Value("${elasticsearch.port:9200}")
+    @Value("${elasticsearch.host}")
+    private String host;
+
+    @Value("${elasticsearch.port}")
     private int port;
 
     @Override

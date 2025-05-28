@@ -2,13 +2,13 @@ spring:
   main:
     allow-circular-references: true
 
-  elasticsearch:
-    rest:
-      uris: http://localhost:9200
-#    username: newadmin
-#    password: 123456789
-    index:
-      auto-create: true
+elasticsearch:
+  host: 10.10.10.12
+  port: 9092
+  #    username: newadmin
+  #    password: 123456789
+  index:
+    auto-create: true
 
   kafka:
     bootstrap-servers: kafka:9092
