@@ -1,0 +1,20 @@
+version: "3"
+services:
+  tool_order_search:
+    container_name: tool_order_search
+    image: tool_order_search:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 6701:8080
+    restart: always
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - TZ=Asia/Ho_Chi_Minh
+    networks:
+      - tool_default
+
+networks:
+  tool_default:
+    external: true

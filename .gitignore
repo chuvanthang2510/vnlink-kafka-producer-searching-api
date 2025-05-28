@@ -28,3 +28,4 @@ Thumbs.db
 target/generated-sources/
 
 /target/
+.class
