@@ -14,14 +14,14 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 @EnableElasticsearchRepositories(basePackages = "vnlink.com.vn.repository")
 public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
 
-//    @Value("${elasticsearch.host:localhost}")
-//    private String host; //cau hinh local
+    // @Value("${elasticsearch.host:localhost}")
+    // private String host; //cau hinh local
 
     @Value("${elasticsearch.host}")
     private String host;
 
     @Value("${elasticsearch.port}")
-    private int port;
+    private Integer port;
 
     @Value("${elasticsearch.username}")
     private String username;
@@ -32,8 +32,15 @@ public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
     @Override
     @Bean
     public RestHighLevelClient elasticsearchClient() {
+        String elasticsearchUrl = "";
+        if (port != null && port > 0) {
+            elasticsearchUrl = host + ":" + port;
+        } else {
+            elasticsearchUrl = host;
+        }
+
         ClientConfiguration clientConfiguration = ClientConfiguration.builder()
-                .connectedTo(host + ":" + port)
+                .connectedTo(elasticsearchUrl)
                 .withBasicAuth(username, password)
                 .withConnectTimeout(1000)
                 .withSocketTimeout(30000)
@@ -45,4 +52,4 @@ public class ElasticsearchConfig extends AbstractElasticsearchConfiguration {
     public ElasticsearchRestTemplate elasticsearchRestTemplate() {
         return new ElasticsearchRestTemplate(elasticsearchClient());
     }
-} 
+}

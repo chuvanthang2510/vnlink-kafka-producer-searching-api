@@ -3,8 +3,8 @@ spring:
     allow-circular-references: true
 
 elasticsearch:
-  host: 10.10.10.12
-  port: 9092
+  host: elasticsearch
+  port: 
   username: elastic
   password: M6a5K2XgHhWJYAZUsGF4mRc
   index:
