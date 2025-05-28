@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - 6701:8080
+      - 6701:8088
     restart: always
     environment:
       - SPRING_PROFILES_ACTIVE=prod

@@ -4,7 +4,7 @@ spring:
 
 elasticsearch:
   host: elasticsearch
-  port: 
+  port: 9200
   username: elastic
   password: M6a5K2XgHhWJYAZUsGF4mRc
   index:

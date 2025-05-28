@@ -1,6 +1,9 @@
 spring:
   main:
     allow-circular-references: true
+  profiles:
+    active:
+    - prod
 
 elasticsearch:
   host: 103.21.149.190
