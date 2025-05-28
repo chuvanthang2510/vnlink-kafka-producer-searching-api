@@ -5,8 +5,8 @@ spring:
   elasticsearch:
     rest:
       uris: http://localhost:9200
-    username: newadmin
-    password: 123456789
+#    username: newadmin
+#    password: 123456789
     index:
       auto-create: true
 

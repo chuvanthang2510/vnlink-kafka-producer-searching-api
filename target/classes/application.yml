@@ -5,8 +5,8 @@ spring:
   elasticsearch:
     rest:
       uris: http://localhost:9200
-    username: newadmin
-    password: 123456789
+#    username: newadmin
+#    password: 123456789
     index:
       auto-create: true
 
@@ -29,3 +29,10 @@ logging:
   level:
     org.springframework.data.elasticsearch: DEBUG
     org.elasticsearch: DEBUG
+
+api:
+  key:
+    header: API-KEY
+    clients:
+      vnlink.vn: SSMEDIA
+      VNLINK-GROUP: 8TRAVEL
