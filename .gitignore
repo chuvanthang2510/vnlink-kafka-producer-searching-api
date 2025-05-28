@@ -25,7 +25,5 @@ out/
 # OS files
 .DS_Store
 Thumbs.db
-target/generated-sources/
-
-/target/
+target/*
 *.class
