@@ -193,5 +193,5 @@ POST /orders_1/_delete_by_query
 }
 
 
-------------
-logstash.bat -f D:\elasticsearch\logstash-8.7.1\config\logstash.conf
+------------ đẩy data từ logstash vào ES
+logstash.bat -f D:\APISearch-Java-ES-Logstash-Kafka-Docker\es-logstash\pipeline\logstash.conf
