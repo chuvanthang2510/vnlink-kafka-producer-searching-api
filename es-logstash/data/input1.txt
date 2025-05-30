@@ -1,0 +1,5 @@
+orderCode;createdDate;saleChannelId;agentId;customerName;customerMobile;customerEmail;customerId;paymentStatus;agentPaymentStatus
+112791;10-JAN-24 02.26.39.520000000 PM;200;200;Tien Lam, NGuyen1;0368099996,0375585473;tienlam83@gmail.com;;none;none
+112792;10-JAN-24 02.28.59.521000000 PM;200;200;Tien Lam, NGuyen2;0368099996;tienlam83@gmail.com;;none;none
+112793;10-JAN-24 02.28.59.521000000 PM;200;200;Tien Lam, NGuyen3;;tienlam83@gmail.com;;none;none
+112794;10-JAN-24 02.28.59.521000000 PM;200;200;Tien Lam, NGuyen3;0368099996,0375585473, 1900561275;tienlam83@gmail.com;;none;none
