@@ -22,6 +22,8 @@ import vnlink.com.vn.dto.OrderSearchResponse;
 import vnlink.com.vn.model.OrderDocument;
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -90,7 +92,7 @@ public class OrderDocumentService {
 
             if (!input.contains("@")) {
                 // Tìm tiền tố emailPrefix khi user chỉ nhập phần trước @
-                boolQuery.must(QueryBuilders.prefixQuery("emailPrefix.raw", input));
+                boolQuery.must(QueryBuilders.prefixQuery("emailPrefix.keyword", input));
             } else {
                 // Tìm chính xác email đầy đủ với trường customerEmail.raw (keyword)
                 boolQuery.must(QueryBuilders.termQuery("customerEmail.raw", input));
@@ -130,10 +132,9 @@ public class OrderDocumentService {
             boolQuery.must(QueryBuilders.termsQuery("serviceId.raw", request.getServiceId()));
 
         if (H.isTrue(request.getCustomerMobile())) {
-            List<String> normalizedPhones = request.getCustomerMobile().stream()
-                    .map(this::normalizePhone)
-                    .collect(Collectors.toList());
-            boolQuery.must(QueryBuilders.termsQuery("customerMobile.raw", normalizedPhones));
+            String normalizedPhone = normalizePhone(request.getCustomerMobile().trim());
+
+            boolQuery.must(QueryBuilders.termsQuery("customerMobile.raw", Collections.singletonList(normalizedPhone)));
         }
 
         if (H.isTrue(request.getSubService()))

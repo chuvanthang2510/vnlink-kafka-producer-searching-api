@@ -21,7 +21,7 @@ public class OrderSearchRequest {
 
     private List<String> serviceType;
     private List<String> serviceCode;
-    private List<String> customerMobile;
+    private String customerMobile;
     private List<String> serviceId;
     private List<String> subService;
 
