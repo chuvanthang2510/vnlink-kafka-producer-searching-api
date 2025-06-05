@@ -2,11 +2,9 @@ package vnlink.com.vn.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.common.unit.Fuzziness;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.Operator;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.data.domain.PageRequest;
@@ -19,9 +17,11 @@ import vnlink.com.vn.common.H;
 import vnlink.com.vn.dto.OrderDocumentDTO;
 import vnlink.com.vn.dto.OrderSearchRequest;
 import vnlink.com.vn.dto.OrderSearchResponse;
+import vnlink.com.vn.dto.ServiceRequest;
 import vnlink.com.vn.model.OrderDocument;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -76,9 +76,6 @@ public class OrderDocumentService {
         if (H.isTrue(request.getOrderCode())) {
             boolQuery.must(QueryBuilders.matchQuery("orderCode", request.getOrderCode())); }
 
-        if (H.isTrue(request.getServiceMobile())) {
-            boolQuery.must(QueryBuilders.matchQuery("serviceMobile", request.getServiceMobile())); }
-
         if (H.isTrue(request.getCustomerName())) {
             boolQuery.must(
                     QueryBuilders.matchQuery("customerName", request.getCustomerName())
@@ -91,7 +88,7 @@ public class OrderDocumentService {
 
             if (!input.contains("@")) {
                 // Tìm tiền tố emailPrefix khi user chỉ nhập phần trước @
-                boolQuery.must(QueryBuilders.prefixQuery("emailPrefix.keyword", input));
+                boolQuery.must(QueryBuilders.prefixQuery("prefixEmail.raw", input));
             } else {
                 // Tìm chính xác email đầy đủ với trường customerEmail.raw (keyword)
                 boolQuery.must(QueryBuilders.termQuery("customerEmail.raw", input));
@@ -107,9 +104,6 @@ public class OrderDocumentService {
         if (H.isTrue(request.getSaleChannelId()))
             boolQuery.must(QueryBuilders.matchQuery("saleChannelId", request.getSaleChannelId()));
 
-        if (H.isTrue(request.getOrderStatus()))
-            boolQuery.must(QueryBuilders.matchQuery("orderStatus", request.getOrderStatus()));
-
         if (H.isTrue(request.getPaymentStatus()))
             boolQuery.must(QueryBuilders.matchQuery("paymentStatus", request.getPaymentStatus()));
 
@@ -120,34 +114,58 @@ public class OrderDocumentService {
             boolQuery.must(QueryBuilders.matchQuery("agentPaymentStatus", request.getAgentPaymentStatus()));
 
 
-        // List fields - Phân biệt chũ hoa chữ thường các phần tử trong mảng
-        if (H.isTrue(request.getServiceType()))
-            boolQuery.must(QueryBuilders.termsQuery("serviceType.raw", request.getServiceType()));
-
-        if (H.isTrue(request.getServiceCode()))
-            boolQuery.must(QueryBuilders.termsQuery("serviceCode.raw", request.getServiceCode()));
-
-        if (H.isTrue(request.getServiceId()))
-            boolQuery.must(QueryBuilders.termsQuery("serviceId.raw", request.getServiceId()));
 
         if (H.isTrue(request.getCustomerMobile())) {
             String normalizedPhone = normalizePhone(request.getCustomerMobile().trim());
-
-            boolQuery.must(QueryBuilders.termsQuery("customerMobile.raw", Collections.singletonList(normalizedPhone)));
+            boolQuery.must(QueryBuilders.termsQuery("customerMobile.raw", normalizedPhone));
         }
 
-        if (H.isTrue(request.getSubService()))
-            boolQuery.must(QueryBuilders.termsQuery("subService.raw", request.getSubService()));
+        // Nested serviceRequests
+        if (H.isTrue(request.getServices())) {
+            List<QueryBuilder> nestedQueries = new ArrayList<>();
+            for (ServiceRequest sr : request.getServices()) {
+                BoolQueryBuilder nestedBool = QueryBuilders.boolQuery();
 
-        // Tìm theo khoảng thời gian
-        RangeQueryBuilder dateRangeQuery = QueryBuilders.rangeQuery("orderDate");
-        if (H.isTrue(request.getFromCreatedDate())) {
-            dateRangeQuery.gte(request.getFromCreatedDate());
+                if (H.isTrue(sr.getId()))
+                    nestedBool.filter(QueryBuilders.termQuery("services.id.raw", sr.getId()));
+
+                if (H.isTrue(sr.getServiceId()))
+                    nestedBool.filter(QueryBuilders.termQuery("services.serviceId.raw", sr.getServiceId()));
+
+                if (H.isTrue(sr.getServiceCode()))
+                    nestedBool.filter(QueryBuilders.termQuery("services.serviceCode.raw", sr.getServiceCode()));
+
+                if (H.isTrue(sr.getCode()))
+                    nestedBool.filter(QueryBuilders.termQuery("services.code.raw", sr.getCode()));
+
+                if (H.isTrue(sr.getSubService()))
+                    nestedBool.filter(QueryBuilders.termQuery("services.subService.raw", sr.getSubService()));
+
+                if (!nestedBool.must().isEmpty() || !nestedBool.filter().isEmpty()) {
+                    nestedQueries.add(QueryBuilders.nestedQuery("services", nestedBool, ScoreMode.None));
+                }
+            }
+
+            // Nếu muốn match ít nhất 1 service, dùng should
+            if (!nestedQueries.isEmpty()) {
+                BoolQueryBuilder nestedShould = QueryBuilders.boolQuery();
+                nestedQueries.forEach(nestedShould::should);
+                nestedShould.minimumShouldMatch(1); // bắt buộc ít nhất 1 khớp
+                boolQuery.must(nestedShould);
+            }
         }
-        if (H.isTrue(request.getToCreatedDate())) {
-            dateRangeQuery.lte(request.getToCreatedDate());
+
+        // Khoảng thời gian
+        if (H.isTrue(request.getFromCreatedDate()) || H.isTrue(request.getToCreatedDate())) {
+            RangeQueryBuilder dateRangeQuery = QueryBuilders.rangeQuery("createdDate");
+            if (H.isTrue(request.getFromCreatedDate())) {
+                dateRangeQuery.gte(request.getFromCreatedDate());
+            }
+            if (H.isTrue(request.getToCreatedDate())) {
+                dateRangeQuery.lte(request.getToCreatedDate());
+            }
+            boolQuery.filter(dateRangeQuery);
         }
-        boolQuery.must(dateRangeQuery);
 
 
         // Build search query với các tối ưu
@@ -155,7 +173,7 @@ public class OrderDocumentService {
                 .withQuery(boolQuery)
                 .withPageable(PageRequest.of(request.getPage(), request.getPageSize()))
                 .withSort(SortBuilders.scoreSort().order(SortOrder.DESC))
-                .withSort(SortBuilders.fieldSort("orderDate").order(SortOrder.DESC))
+                .withSort(SortBuilders.fieldSort("createdDate").order(SortOrder.DESC))
                 // Thêm preference để đảm bảo kết quả nhất quán
                 .withPreference("_local")
                 // Thêm timeout

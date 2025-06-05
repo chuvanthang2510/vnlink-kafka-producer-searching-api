@@ -1,0 +1,163 @@
+{
+  "index_patterns": [
+    "orders*"
+  ],
+  "template": {
+    "settings": {
+      "index": {
+        "refresh_interval": "1s",
+        "analysis": {
+          "analyzer": {
+            "vietnamese": {
+              "filter": [
+                "lowercase",
+                "asciifolding"
+              ],
+              "type": "custom",
+              "tokenizer": "standard"
+            }
+          }
+        },
+        "number_of_shards": "1",
+        "number_of_replicas": "1"
+      }
+    },
+    "mappings": {
+      "properties": {
+        "orderCode": {
+          "analyzer": "vietnamese",
+          "type": "text",
+          "fields": {
+            "raw": {
+              "type": "keyword"
+            }
+          }
+        },
+        "createdDate": {
+          "format": "dd/MM/yyyy HH:mm:ss",
+          "type": "date"
+        },
+        "agentId": {
+          "analyzer": "vietnamese",
+          "type": "text",
+          "fields": {
+            "raw": {
+              "type": "keyword"
+            }
+          }
+        },
+        "saleChannelId": {
+          "analyzer": "vietnamese",
+          "type": "text",
+          "fields": {
+            "raw": {
+              "type": "keyword"
+            }
+          }
+        },
+        "customerCareId": {
+          "type": "keyword"
+        },
+        "customerName": {
+          "analyzer": "vietnamese",
+          "type": "text",
+          "fields": {
+            "raw": {
+              "type": "keyword"
+            }
+          }
+        },
+        "customerEmail": {
+          "analyzer": "vietnamese",
+          "type": "text",
+          "fields": {
+            "raw": {
+              "type": "keyword"
+            }
+          }
+        },
+        "prefixEmail": {
+          "analyzer": "vietnamese",
+          "type": "text",
+          "fields": {
+            "raw": {
+              "type": "keyword"
+            }
+          }
+        },
+        "customerId": {
+          "analyzer": "vietnamese",
+          "type": "text",
+          "fields": {
+            "raw": {
+              "type": "keyword"
+            }
+          }
+        },
+        "customerMobile": {
+          "analyzer": "vietnamese",
+          "type": "text",
+          "fields": {
+            "raw": {
+              "type": "keyword"
+            }
+          }
+        },
+        "paymentStatus": {
+          "type": "keyword"
+        },
+        "agentPaymentStatus": {
+          "type": "keyword"
+        },
+        "services": {
+          "type": "nested",
+          "properties": {
+            "id": {
+              "type": "keyword",
+              "fields": {
+                "raw": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "serviceId": {
+              "type": "keyword",
+              "fields": {
+                "raw": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "serviceCode": {
+              "type": "keyword",
+              "fields": {
+                "raw": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "code": {
+              "type": "keyword",
+              "fields": {
+                "raw": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "subService": {
+              "type": "text",
+              "analyzer": "vietnamese",
+              "fields": {
+                "raw": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "composed_of": [],
+  "priority": 10
+}
