@@ -27,13 +27,8 @@ public class OrderDocument {
     )
     private String orderCode;
 
-    @MultiField(
-            mainField = @Field(type = FieldType.Text, analyzer = "partial_match_analyzer"),
-            otherFields = {
-                    @InnerField(suffix = "raw", type = FieldType.Keyword)
-            }
-    )
-    private List<String> serviceType;
+    @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "dd/MM/yyyy HH:mm:ss")
+    private Date createdDate;
 
     @MultiField(
             mainField = @Field(type = FieldType.Text, analyzer = "partial_match_analyzer"),
@@ -41,7 +36,7 @@ public class OrderDocument {
                     @InnerField(suffix = "raw", type = FieldType.Keyword)
             }
     )
-    private List<String> serviceCode;
+    private String saleChannelId;
 
     @MultiField(
             mainField = @Field(type = FieldType.Text, analyzer = "partial_match_analyzer"),
@@ -49,15 +44,7 @@ public class OrderDocument {
                     @InnerField(suffix = "raw", type = FieldType.Keyword)
             }
     )
-    private List<String> serviceId;
-
-    @MultiField(
-            mainField = @Field(type = FieldType.Text, analyzer = "partial_match_analyzer"),
-            otherFields = {
-                    @InnerField(suffix = "raw", type = FieldType.Keyword)
-            }
-    )
-    private String serviceMobile;
+    private String agentId;
 
     @MultiField(
             mainField = @Field(type = FieldType.Text,
@@ -75,7 +62,7 @@ public class OrderDocument {
                     @InnerField(suffix = "raw", type = FieldType.Keyword)
             }
     )
-    private List<String> customerMobile;
+    private String customerMobile;
 
     @MultiField(
             mainField = @Field(type = FieldType.Text, analyzer = "partial_match_analyzer"),
@@ -107,42 +94,7 @@ public class OrderDocument {
                     @InnerField(suffix = "raw", type = FieldType.Keyword)
             }
     )
-    private String agentId;
-
-    @MultiField(
-            mainField = @Field(type = FieldType.Text, analyzer = "partial_match_analyzer"),
-            otherFields = {
-                    @InnerField(suffix = "raw", type = FieldType.Keyword)
-            }
-    )
-    private String saleChannelId;
-
-    @Field(type = FieldType.Date, format = DateFormat.custom, pattern = "dd/MM/yyyy HH:mm:ss")
-    private Date orderDate;
-
-    @MultiField(
-            mainField = @Field(type = FieldType.Text, analyzer = "partial_match_analyzer"),
-            otherFields = {
-                    @InnerField(suffix = "raw", type = FieldType.Keyword)
-            }
-    )
-    private String orderStatus;
-
-    @MultiField(
-            mainField = @Field(type = FieldType.Text, analyzer = "partial_match_analyzer"),
-            otherFields = {
-                    @InnerField(suffix = "raw", type = FieldType.Keyword)
-            }
-    )
     private String paymentStatus;
-
-    @MultiField(
-            mainField = @Field(type = FieldType.Text, analyzer = "partial_match_analyzer"),
-            otherFields = {
-                    @InnerField(suffix = "raw", type = FieldType.Keyword)
-            }
-    )
-    private String customerCareId;
 
     @MultiField(
             mainField = @Field(type = FieldType.Text, analyzer = "partial_match_analyzer"),
@@ -158,7 +110,8 @@ public class OrderDocument {
                     @InnerField(suffix = "raw", type = FieldType.Keyword)
             }
     )
-    private List<String> subService;
+    private String customerCareId;
 
-
+    @Field(type = FieldType.Nested, includeInParent = true)
+    private List<ServiceInfo> services;
 }
