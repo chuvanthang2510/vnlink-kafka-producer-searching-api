@@ -1,0 +1,17 @@
+orderCode			: ID
+createdDate			: single value, update
+saleChannelId		: single value, update
+agentId				: single value, update
+customerName		: single value, update
+customerMobile		: single value, update
+customerEmail		: single value, update
+customerId			: single value, update
+paymentStatus		: single value, update
+agentPaymentStatus	: single value, update
+customerCareId		: single value, update
+services: array
+	- ID: ID
+	- serviceId:  single value, update
+	- serviceCode:  single value, update
+	- code: single value, update
+	- subService:  single value, update
