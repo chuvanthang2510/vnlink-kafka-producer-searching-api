@@ -10,9 +10,6 @@
         <module name="producer-send-message-and-api-search" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="producer-send-message-and-api-search" target="11" />
-    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
