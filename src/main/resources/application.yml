@@ -1,20 +1,25 @@
 spring:
   main:
     allow-circular-references: true
-  profiles:
-    active:
-    - prod
-
-elasticsearch:
-  host: 103.21.149.190
-  port: 9200
-  username: elastic
-  password: M6a5K2XgHhWJYAZUsGF4mRc
-  index:
-    auto-create: true
-
   kafka:
-    bootstrap-servers: kafka:9092
+    bootstrap-servers: localhost:9092
+    consumer:
+      topic: order_push
+      group-id: order-consumer-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring.json.trusted.packages: vnlink.com.vn.model
+        # Performance tuning
+        max.poll.records: 1000
+        fetch.min.bytes: 1024
+        fetch.max.wait.ms: 500
+        max.partition.fetch.bytes: 1048576
+        # Retry configuration
+        retry.backoff.ms: 1000
+        reconnect.backoff.ms: 1000
+        reconnect.backoff.max.ms: 10000
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -24,14 +29,34 @@ elasticsearch:
       linger-ms: 20
       buffer-memory: 33554432
 
+elasticsearch:
+  host: 103.21.149.190
+  port: 9200
+  username: elastic
+  password: M6a5K2XgHhWJYAZUsGF4mRc
+  index:
+    auto-create: true
+    refresh-interval: 1s
+    bulk-size: 1000
+    retry:
+      max-attempts: 3
+      initial-interval: 1000
+      max-interval: 10000
+      multiplier: 2.0
+
 server:
   port: 8088
   address: 0.0.0.0
 
 logging:
   level:
-    org.springframework.data.elasticsearch: DEBUG
-    org.elasticsearch: DEBUG
+    root: INFO
+    org.springframework.data.elasticsearch: INFO
+    org.elasticsearch: INFO
+    org.springframework.kafka: INFO
+    vnlink.com.vn: DEBUG
+    # Performance logging
+    vnlink.com.vn.kafka.OrderKafkaConsumer: DEBUG
 
 api:
   key:
